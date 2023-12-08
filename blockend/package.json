@@ -1,10 +1,9 @@
 {
-  "name": "hypercluster-server",
+  "name": "dailygm-contracts",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "prepare": "husky install",
     "compile": "hardhat compile",
     "test": "npm run test:unit",
     "test:unit": "hardhat test test/unit/*.spec.js",
