@@ -1,25 +1,25 @@
 const { networks } = require("../../networks")
 
-task("deploy-contract-plugin", "Deploys the InteractContractPlugin contract")
+task("deploy-manager", "Deploys the SafeProtocolManager contract")
   .addOptionalParam("verify", "Set to true to verify contract", false, types.boolean)
   .setAction(async (taskArgs) => {
-    console.log(`Deploying InteractContractPlugin contract to ${network.name}`)
+    console.log(`Deploying SafeProtocolManager contract to ${network.name}`)
 
     console.log("\n__Compiling Contracts__")
     await run("compile")
 
-    const contractPluginFactory = await ethers.getContractFactory("InteractContractPlugin")
-    const contractPlugin = await contractPluginFactory.deploy()
+    const safeProtocolFactory = await ethers.getContractFactory("SafeProtocolManager")
+    const safeProtocol = await safeProtocolFactory.deploy()
 
     console.log(
       `\nWaiting ${networks[network.name].confirmations} blocks for transaction ${
-        contractPlugin.deployTransaction.hash
+        safeProtocol.deployTransaction.hash
       } to be confirmed...`
     )
 
-    await contractPlugin.deployTransaction.wait(networks[network.name].confirmations)
+    await safeProtocol.deployTransaction.wait(networks[network.name].confirmations)
 
-    console.log("\nDeployed InteractContractPlugin contract to:", contractPlugin.address)
+    console.log("\nDeployed SafeProtocolManager contract to:", safeProtocol.address)
 
     if (network.name === "localFunctionsTestnet") {
       return
@@ -35,7 +35,7 @@ task("deploy-contract-plugin", "Deploys the InteractContractPlugin contract")
       try {
         console.log("\nVerifying contract...")
         await run("verify:verify", {
-          address: contractPlugin.address,
+          address: safeProtocol.address,
           constructorArguments: [],
         })
         console.log("Contract verified")
@@ -55,5 +55,5 @@ task("deploy-contract-plugin", "Deploys the InteractContractPlugin contract")
       )
     }
 
-    console.log(`\n InteractContractPlugin contract deployed to ${contractPlugin.address} on ${network.name}`)
+    console.log(`\n SafeProtocolManager contract deployed to ${safeProtocol.address} on ${network.name}`)
   })

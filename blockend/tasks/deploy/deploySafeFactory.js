@@ -1,25 +1,25 @@
 const { networks } = require("../../networks")
 
-task("deploy-contract-plugin", "Deploys the InteractContractPlugin contract")
+task("deploy-safe-factory", "Deploys the DailyGMSafeFactory contract")
   .addOptionalParam("verify", "Set to true to verify contract", false, types.boolean)
   .setAction(async (taskArgs) => {
-    console.log(`Deploying InteractContractPlugin contract to ${network.name}`)
+    console.log(`Deploying DailyGMSafeFactory contract to ${network.name}`)
 
     console.log("\n__Compiling Contracts__")
     await run("compile")
 
-    const contractPluginFactory = await ethers.getContractFactory("InteractContractPlugin")
-    const contractPlugin = await contractPluginFactory.deploy()
+    const dailyGmSafeFactory = await ethers.getContractFactory("DailyGMSafeFactory")
+    const dailyGmSafe = await dailyGmSafeFactory.deploy()
 
     console.log(
       `\nWaiting ${networks[network.name].confirmations} blocks for transaction ${
-        contractPlugin.deployTransaction.hash
+        dailyGmSafe.deployTransaction.hash
       } to be confirmed...`
     )
 
-    await contractPlugin.deployTransaction.wait(networks[network.name].confirmations)
+    await dailyGmSafe.deployTransaction.wait(networks[network.name].confirmations)
 
-    console.log("\nDeployed InteractContractPlugin contract to:", contractPlugin.address)
+    console.log("\nDeployed DailyGMSafeFactory contract to:", dailyGmSafe.address)
 
     if (network.name === "localFunctionsTestnet") {
       return
@@ -35,7 +35,7 @@ task("deploy-contract-plugin", "Deploys the InteractContractPlugin contract")
       try {
         console.log("\nVerifying contract...")
         await run("verify:verify", {
-          address: contractPlugin.address,
+          address: dailyGmSafe.address,
           constructorArguments: [],
         })
         console.log("Contract verified")
@@ -55,5 +55,5 @@ task("deploy-contract-plugin", "Deploys the InteractContractPlugin contract")
       )
     }
 
-    console.log(`\n InteractContractPlugin contract deployed to ${contractPlugin.address} on ${network.name}`)
+    console.log(`\n DailyGMSafeFactory contract deployed to ${dailyGmSafe.address} on ${network.name}`)
   })
