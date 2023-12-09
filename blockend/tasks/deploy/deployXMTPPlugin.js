@@ -1,4 +1,5 @@
 const { networks } = require("../../networks")
+const fs = require("fs")
 
 task("deploy-xmtp-plugin", "Deploys the XMTPChatPlugin contract")
   .addOptionalParam("verify", "Set to true to verify contract", false, types.boolean)
@@ -8,8 +9,22 @@ task("deploy-xmtp-plugin", "Deploys the XMTPChatPlugin contract")
     console.log("\n__Compiling Contracts__")
     await run("compile")
 
+    const manager = "0x70DAAa5df4cA762dE7956D13f3519a504753eB13"
+    const donId = "0x66756e2d706f6c79676f6e2d6d756d6261692d31000000000000000000000000"
+    const functionsRouter = "0x6E2dc0F9DB014aE19888F539E59285D2Ea04244C"
+    const crossChainRouter = "0x70499c328e1e2a3c41108bd3730f6670a44595d1"
+    const link = "0x326C977E6efc84E512bB9C30f76E30c160eD06FB"
+    const sourceCode = fs.readFileSync("./functions-xmpt-chat.js").toString()
+
     const xmtpChatPluginFactory = await ethers.getContractFactory("XMTPChatPlugin")
-    const xmtpChatPlugin = await xmtpChatPluginFactory.deploy()
+    const xmtpChatPlugin = await xmtpChatPluginFactory.deploy(
+      manager,
+      donId,
+      functionsRouter,
+      crossChainRouter,
+      link,
+      sourceCode
+    )
 
     console.log(
       `\nWaiting ${networks[network.name].confirmations} blocks for transaction ${
@@ -36,7 +51,7 @@ task("deploy-xmtp-plugin", "Deploys the XMTPChatPlugin contract")
         console.log("\nVerifying contract...")
         await run("verify:verify", {
           address: xmtpChatPlugin.address,
-          constructorArguments: [],
+          constructorArguments: [manager, donId, functionsRouter, crossChainRouter, link, sourceCode],
         })
         console.log("Contract verified")
       } catch (error) {

@@ -1,52 +1,32 @@
-const subgraphEndpoint = args[0];
-const functionName = arg[1];
-const paramName = args[2];
+const contractAddress = args[0]
+const fromBlock = args[1]
+const encodedEventSignature = args[2]
+const topicIndex = arg[3]
+const encodedAddress = args[4]
 
-const QUERY = `query isFollowing {
-    Wallet(input: {identity: "lens/@${verifyHandle}", blockchain: polygon}) {
-      socialFollowings(
-        input: {filter: {identity: {_in: ["${callerAddress}"]}, dappName: {_eq: lens}}}
-      ) {
-        Following {
-          dappName
-          dappSlug
-          followingProfileId
-          followerProfileId
-          followerAddress {
-            addresses
-            socials {
-              profileName
-            }
-            domains {
-              name
-            }
-          }
-        }
-      }
-    }
-  }`;
+const QUERY = `https://api-testnet.polygonscan.com/api?module=logs&action=getLogs&fromBlock=${fromBlock}&address=${contractAddress}&topic0=${encodedEventSignature}&topic0_${topicIndex}_opr=and&topic${topicIndex}=${encodedAddress}&apikey=TBZ6CSAHPBA982SDPZIR4SJB7AEBQN2ZQI`
 const AUTH_HEADERS = {
   "Content-Type": "application/json",
-};
+}
+
+let isDone
 
 try {
-  const lensResponse = await Functions.makeHttpRequest({
-    url: `${subgraphEndpoint}`,
+  const interactionResponse = await Functions.makeHttpRequest({
+    url: `${QUERY}`,
     method: "GET",
     headers: AUTH_HEADERS,
-  });
+  })
+  isDone = interactionResponse.data.result.length > 0
 } catch (err) {
-  throw Error("API FETCH FAILED");
+  throw Error("API FETCH FAILED")
 }
 
-const isFollowing =
-  lensResponse.data.Wallet.socialFollowings.Following.length > 0;
-
-if (isFollowing == null || isFollowing == undefined) {
-  throw Error("LENS no data");
+if (isDone == null || isDone == undefined) {
+  throw Error("POLYGONSCAN no data")
 }
-if (isFollowing == true) {
-  return Functions.encodeString("VERIFICATION SUCCESS");
+if (isDone == true) {
+  return Functions.encodeString("VERIFICATION SUCCESS")
 } else {
-  throw Error("VERIFICATION UNSUCCESSFUL");
+  throw Error("VERIFICATION UNSUCCESSFUL")
 }
