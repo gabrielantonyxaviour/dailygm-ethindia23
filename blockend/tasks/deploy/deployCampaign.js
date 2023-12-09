@@ -1,35 +1,29 @@
 const { networks } = require("../../networks")
 
-task("deploy-safe-implementation", "Deploys the DailyGMSafe contract")
+task("deploy-campaign", "Deploys the DailyGMCampaign contract")
   .addOptionalParam("verify", "Set to true to verify contract", false, types.boolean)
   .setAction(async (taskArgs) => {
-    console.log(`Deploying DailyGMSafe contract to ${network.name}`)
+    console.log(`Deploying DailyGMCampaign contract to ${network.name}`)
 
     console.log("\n__Compiling Contracts__")
     await run("compile")
-    const entryPoint = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"
-    const rewardToken = "0xf1E3A5842EeEF51F2967b3F05D45DD4f4205FF40"
-    const sourceChainSelector = "12532609583862916517"
-    const crossChainRotuer = "0x70499c328e1e2a3c41108bd3730f6670a44595d1"
-    const linkToken = "0x326C977E6efc84E512bB9C30f76E30c160eD06FB"
-    const dailyGmSafeFactory = await ethers.getContractFactory("DailyGMSafe")
-    const dailyGmSafe = await dailyGmSafeFactory.deploy(
-      entryPoint,
-      rewardToken,
-      sourceChainSelector,
-      crossChainRotuer,
-      linkToken
-    )
+
+    const safe = "0x41675C099F32341bf84BFc5382aF534df5C7461a"
+    const safeProxyFactory = "0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67"
+    const manager = "0x70DAAa5df4cA762dE7956D13f3519a504753eB13"
+
+    const campaignFactory = await ethers.getContractFactory("DailyGMCampaign")
+    const campaign = await campaignFactory.deploy(safe, safeProxyFactory, manager)
 
     console.log(
       `\nWaiting ${networks[network.name].confirmations} blocks for transaction ${
-        dailyGmSafe.deployTransaction.hash
+        campaign.deployTransaction.hash
       } to be confirmed...`
     )
 
-    await dailyGmSafe.deployTransaction.wait(networks[network.name].confirmations)
+    await campaign.deployTransaction.wait(networks[network.name].confirmations)
 
-    console.log("\nDeployed DailyGMSafe contract to:", dailyGmSafe.address)
+    console.log("\nDeployed DailyGMCampaign contract to:", campaign.address)
 
     if (network.name === "localFunctionsTestnet") {
       return
@@ -45,8 +39,8 @@ task("deploy-safe-implementation", "Deploys the DailyGMSafe contract")
       try {
         console.log("\nVerifying contract...")
         await run("verify:verify", {
-          address: dailyGmSafe.address,
-          constructorArguments: [entryPoint, rewardToken, sourceChainSelector, crossChainRotuer, linkToken],
+          address: campaign.address,
+          constructorArguments: [safe, safeProxyFactory, manager],
         })
         console.log("Contract verified")
       } catch (error) {
@@ -65,5 +59,5 @@ task("deploy-safe-implementation", "Deploys the DailyGMSafe contract")
       )
     }
 
-    console.log(`\n DailyGMSafe contract deployed to ${dailyGmSafe.address} on ${network.name}`)
+    console.log(`\n DailyGMCampaign contract deployed to ${campaign.address} on ${network.name}`)
   })

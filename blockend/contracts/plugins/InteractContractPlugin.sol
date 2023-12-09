@@ -7,10 +7,12 @@ import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/Confir
 import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/libraries/FunctionsRequest.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
+import "../interface/Safe.sol";
  
+import {ISafe} from "@safe-global/safe-core-protocol/contracts/interfaces/Accounts.sol";
+import {ISafeProtocolManager} from "@safe-global/safe-core-protocol/contracts/interfaces/Manager.sol";
 import {SafeTransaction, SafeProtocolAction} from "@safe-global/safe-core-protocol/contracts/DataTypes.sol";
- import {BasePluginWithEventMetadata, PluginMetadata} from "./BasePlugin.sol";
-import "../interface/ISafeProtocolManager.sol";
+import {BasePluginWithEventMetadata, PluginMetadata} from "./BasePlugin.sol";
 
 
 contract InteractContractPlugin is BasePluginWithEventMetadata,FunctionsClient {
@@ -49,13 +51,10 @@ contract InteractContractPlugin is BasePluginWithEventMetadata,FunctionsClient {
         donId=_donId;
     }
 
-    modifier onlyDailyGMSafe {
-        require(ISafeProtocolManager(manager).isDailyGMSafe(msg.sender), "Caller is not a daily GM Safe");
-        _;
-    }
+
     
 
-    function setupSafe(string memory _subgraphApiEndpoint, string memory _functionName, string memory _paramName,uint rewardAmount) external onlyDailyGMSafe{
+    function setupSafe(string memory _subgraphApiEndpoint, string memory _functionName, string memory _paramName,uint rewardAmount) external {
         safeAddresses[msg.sender] = true;
         subgraphEndpoint=_subgraphApiEndpoint;
         functionName=_functionName;
@@ -100,7 +99,7 @@ contract InteractContractPlugin is BasePluginWithEventMetadata,FunctionsClient {
     {   
         SafeTransaction memory safeTx = SafeTransaction({
             actions: new SafeProtocolAction[](1),
-            nonce: safe.nonce(),
+            nonce: Safe(address(safe)).nonce(),
             metadataHash: bytes32(0)
         });
         safeTx.actions[0] = SafeProtocolAction({
@@ -108,7 +107,7 @@ contract InteractContractPlugin is BasePluginWithEventMetadata,FunctionsClient {
             value: 0,
             data: releaseFundsData
         });
-        (data)=ISafeProtocolManager(manager).executeTransaction(safe, safeTx);
+        // (data)=ISafeProtocolManager(manager).executeTransaction(safe, safeTx);
     }   
 
     function requiresPermissions() external view returns (uint8 permissions){

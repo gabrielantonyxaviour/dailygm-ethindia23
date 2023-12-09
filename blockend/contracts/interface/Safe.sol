@@ -14,6 +14,5 @@ interface Safe{
 
     function getNonce() external view returns (uint256 nonce);
 
-
-    function setupModules()
+    function nonce() external view returns(uint256 _nonce);
 }

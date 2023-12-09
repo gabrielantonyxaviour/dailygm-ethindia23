@@ -7,13 +7,12 @@ import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/Confir
 import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/libraries/FunctionsRequest.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import "../interface/ISafe.sol";
+import "../interface/Safe.sol";
  
+import {ISafe} from "@safe-global/safe-core-protocol/contracts/interfaces/Accounts.sol";
+import {ISafeProtocolManager} from "@safe-global/safe-core-protocol/contracts/interfaces/Manager.sol";
 import {SafeTransaction, SafeProtocolAction} from "@safe-global/safe-core-protocol/contracts/DataTypes.sol";
- import {BasePluginWithEventMetadata, PluginMetadata} from "./BasePlugin.sol";
-import "../interface/ISafeProtocolManager.sol";
-
-
+import {BasePluginWithEventMetadata, PluginMetadata} from "./BasePlugin.sol";
 
 contract LensFollowPlugin is BasePluginWithEventMetadata,FunctionsClient {
     using Strings for uint256;
@@ -30,7 +29,7 @@ contract LensFollowPlugin is BasePluginWithEventMetadata,FunctionsClient {
     bytes public s_lastError;
     uint32 public s_callbackGasLimit=300000;
     uint64 public s_subscriptionId=1134;
-    mapping(bytes32=>Safe) public requestIdToSafe;
+    mapping(bytes32=>ISafe) public requestIdToSafe;
 
 
     event VerificationSuccess();
@@ -49,20 +48,15 @@ contract LensFollowPlugin is BasePluginWithEventMetadata,FunctionsClient {
         donId=_donId;
     }
 
-    modifier onlyDailyGMSafe {
-        require(ISafeProtocolManager(manager).isDailyGMSafe(msg.sender), "Caller is not a daily GM Safe");
-        _;
-    }
-    
 
-    function setupSafe(string memory _followHandle,uint rewardAmount) external onlyDailyGMSafe(){
+    function setupSafe(string memory _followHandle,uint rewardAmount) external {
         safeAddresses[msg.sender] = true;
         followHandle=_followHandle;
         releaseFundsData=abi.encodeWithSignature("releaseFunds(uint256)", rewardAmount);
     }
 
     function executeFromPlugin(
-        Safe safe,
+        ISafe safe,
         uint8 slotId,
         uint64 version
     ) external returns (bytes[] memory data) {
@@ -91,13 +85,13 @@ contract LensFollowPlugin is BasePluginWithEventMetadata,FunctionsClient {
         emit OracleReturned(requestId, response, err);
     }
 
-     function _executeFromPlugin(Safe safe)
+     function _executeFromPlugin(ISafe safe)
         internal
         returns (bytes[] memory data)
     {   
         SafeTransaction memory safeTx = SafeTransaction({
             actions: new SafeProtocolAction[](1),
-            nonce: safe.nonce(),
+            nonce: Safe(address(safe)).nonce(),
             metadataHash: bytes32(0)
         });
         safeTx.actions[0] = SafeProtocolAction({

@@ -1,7 +1,4 @@
 exports.deployLensPlugin = require("./deployLensPlugin")
 exports.deployXMTPPlugin = require("./deployXMTPPlugin")
 exports.deployContractInteractionPlugin = require("./deployContractInteractionPlugin")
-exports.deploySafe = require("./deploySafe")
-exports.deploySafeFactory = require("./deploySafeFactory")
-exports.deploySafeRegistry = require("./deploySafeRegistry")
-exports.deploySafeManager = require("./deployManager")
+exports.deployDailyGMCampaign = require("./deployCampaign")
