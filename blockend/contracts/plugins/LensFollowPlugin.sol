@@ -20,7 +20,7 @@ contract LensFollowPlugin is BasePluginWithEventMetadata,FunctionsClient {
     using FunctionsRequest for FunctionsRequest.Request;  
     bytes public releaseFundsData;
     mapping(address=>bool) public safeAddresses;
-    address public followAddress;
+    string public followHandle;
     address public manager;
     bytes32 public donId;
     address public functionsRouter;
@@ -55,9 +55,9 @@ contract LensFollowPlugin is BasePluginWithEventMetadata,FunctionsClient {
     }
     
 
-    function setupSafe(address _followAddress,uint rewardAmount) external onlyDailyGMSafe{
+    function setupSafe(string memory _followHandle,uint rewardAmount) external onlyDailyGMSafe{
         safeAddresses[msg.sender] = true;
-        followAddress=_followAddress;
+        followHandle=_followHandle;
         releaseFundsData=abi.encodeWithSignature("releaseFunds(uint256)", rewardAmount);
     }
 
@@ -71,9 +71,9 @@ contract LensFollowPlugin is BasePluginWithEventMetadata,FunctionsClient {
         if (version > 0) {
           req.addDONHostedSecrets(slotId,version);
         }
-        string[] memory args=new string[](1);
+        string[] memory args=new string[](2);
         args[0]=addressToString(msg.sender);
-        args[1]=addressToString(followAddress);
+        args[1]=followHandle;
         req.setArgs(args);
         s_lastRequestId = _sendRequest(req.encodeCBOR(), s_subscriptionId, s_callbackGasLimit, donId);
         requestIdToSafe[s_lastRequestId]=safe;
