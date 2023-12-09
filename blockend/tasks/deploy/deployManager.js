@@ -8,6 +8,8 @@ task("deploy-manager", "Deploys the SafeProtocolManager contract")
     console.log("\n__Compiling Contracts__")
     await run("compile")
 
+    const registry = ""
+
     const safeProtocolFactory = await ethers.getContractFactory("SafeProtocolManager")
     const safeProtocol = await safeProtocolFactory.deploy()
 

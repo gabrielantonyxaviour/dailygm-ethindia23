@@ -3,7 +3,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 
-interface ISafe{
+interface Safe{
 
     function execTransactionFromModule(
         address to,
@@ -14,4 +14,6 @@ interface ISafe{
 
     function getNonce() external view returns (uint256 nonce);
 
+
+    function setupModules()
 }

@@ -8,7 +8,7 @@ interface IDailyGMSafe{
 
 
 
-     function initialize(string memory name, string memory metadata,address tokenAddress,uint256 tokenAmount,address manager,address _erc4337Plugin,address _initializer) external;
+     function initialize(string memory name, string memory metadata,address tokenAddress,uint256 tokenAmount,address manager,address _initializer) external;
 
      function addQuest(address questId,bytes memory data) external;
      

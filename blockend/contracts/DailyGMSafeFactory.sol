@@ -23,9 +23,9 @@ contract DailyGMSafeFactory{
         nonce=0;
     }   
 
-    function createSafe(string memory name, string memory metadata,address tokenAddress,uint256 tokenAmount,address _manager,address _erc4337plugin,address initializer) external returns (address safe) {
+    function createSafe(string memory name, string memory metadata,address tokenAddress,uint256 tokenAmount,address _manager,address initializer) external returns (address safe) {
         safe = _deployProxy(implementation, nonce);
-        IDailyGMSafe(safe).initialize(name,metadata,tokenAddress,tokenAmount,_manager,_erc4337plugin,initializer);
+        IDailyGMSafe(safe).initialize(name,metadata,tokenAddress,tokenAmount,_manager,initializer);
         emit DailyGMSafeCreated(safe, initializer);
         nonce++;
         return safe;

@@ -60,12 +60,11 @@ contract DailyGMSafe is
     IEntryPoint private immutable _entryPoint;
     uint256 public nonce;
     bytes32 private _deprecatedDomainSeparator;
-    address public erc4337Plugin;
     address public router;
     address public i_link;
     uint64 public sourceChainSelector;
 
-    event DailyGMSafeInitialized(string name, string metadata,address tokenAddress,uint256 tokenAmount,address manager,address erc4337Plugin,address initializer);
+    event DailyGMSafeInitialized(string name, string metadata,address tokenAddress,uint256 tokenAmount,address manager,address initializer);
     event TokensSentCroschain(bytes32 indexed messageId, address indexed receiver,uint256 amount,uint64 destinationChainSelector);
     event PluginAdded(uint256 questId);
     modifier onlyOwner() {  
@@ -96,21 +95,20 @@ contract DailyGMSafe is
 
 
 
-    function initialize(string memory name, string memory metadata,address tokenAddress,uint256 tokenAmount,address _manager,address _erc4337Plugin,address _initializer) external{
-        _initialize(name,metadata,tokenAddress,tokenAmount,_manager,_erc4337Plugin,_initializer);
+    function initialize(string memory name, string memory metadata,address tokenAddress,uint256 tokenAmount,address _manager,address _initializer) external{
+        _initialize(name,metadata,tokenAddress,tokenAmount,_manager,_initializer);
     }
 
 
-    function _initialize(string memory name, string memory metadata,address tokenAddress,uint256 tokenAmount,address _manager,address _erc4337Plugin,address _initializer) internal virtual {
+    function _initialize(string memory name, string memory metadata,address tokenAddress,uint256 tokenAmount,address _manager,address _initializer) internal virtual {
         manager = _manager;
-        erc4337Plugin=_erc4337Plugin;
-        setupModules(erc4337Plugin, abi.encodeWithSignature("initialize(string,string,address,uint256,address)", name, metadata,tokenAddress,tokenAmount,manager));
-        if(erc4337Plugin!=address(0))internalSetFallbackHandler(erc4337Plugin);
+        setupModules(_manager,"");
+        if(_manager!=address(0))internalSetFallbackHandler(_manager);
 
         address[] memory owners = new address[](1);
         
-        emit DailyGMSafeInitialized(name, metadata,tokenAddress,tokenAmount,manager,erc4337Plugin,_initializer);
-        emit SafeSetup(_initializer, owners, 1, msg.sender, erc4337Plugin);
+        emit DailyGMSafeInitialized(name, metadata,tokenAddress,tokenAmount,manager,_initializer);
+        emit SafeSetup(_initializer, owners, 1, msg.sender);
     }
     
 

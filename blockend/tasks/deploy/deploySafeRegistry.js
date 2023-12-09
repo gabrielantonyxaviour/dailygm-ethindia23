@@ -9,7 +9,7 @@ task("deploy-safe-registry", "Deploys the SafeProtocolRegistry contract")
     await run("compile")
 
     const safeRegistryFactory = await ethers.getContractFactory("SafeProtocolRegistry")
-    const safeRegistry = await safeRegistryFactory.deploy()
+    const safeRegistry = await safeRegistryFactory.deploy("0x0429A2Da7884CA14E53142988D5845952fE4DF6a")
 
     console.log(
       `\nWaiting ${networks[network.name].confirmations} blocks for transaction ${
@@ -36,7 +36,7 @@ task("deploy-safe-registry", "Deploys the SafeProtocolRegistry contract")
         console.log("\nVerifying contract...")
         await run("verify:verify", {
           address: safeRegistry.address,
-          constructorArguments: [],
+          constructorArguments: ["0x0429A2Da7884CA14E53142988D5845952fE4DF6a"],
         })
         console.log("Contract verified")
       } catch (error) {

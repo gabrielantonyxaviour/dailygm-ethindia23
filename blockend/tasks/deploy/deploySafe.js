@@ -7,9 +7,19 @@ task("deploy-safe-implementation", "Deploys the DailyGMSafe contract")
 
     console.log("\n__Compiling Contracts__")
     await run("compile")
-
+    const entryPoint = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"
+    const rewardToken = "0xf1E3A5842EeEF51F2967b3F05D45DD4f4205FF40"
+    const sourceChainSelector = "12532609583862916517"
+    const crossChainRotuer = "0x70499c328e1e2a3c41108bd3730f6670a44595d1"
+    const linkToken = "0x326C977E6efc84E512bB9C30f76E30c160eD06FB"
     const dailyGmSafeFactory = await ethers.getContractFactory("DailyGMSafe")
-    const dailyGmSafe = await dailyGmSafeFactory.deploy()
+    const dailyGmSafe = await dailyGmSafeFactory.deploy(
+      entryPoint,
+      rewardToken,
+      sourceChainSelector,
+      crossChainRotuer,
+      linkToken
+    )
 
     console.log(
       `\nWaiting ${networks[network.name].confirmations} blocks for transaction ${
@@ -36,7 +46,7 @@ task("deploy-safe-implementation", "Deploys the DailyGMSafe contract")
         console.log("\nVerifying contract...")
         await run("verify:verify", {
           address: dailyGmSafe.address,
-          constructorArguments: [],
+          constructorArguments: [entryPoint, rewardToken, sourceChainSelector, crossChainRotuer, linkToken],
         })
         console.log("Contract verified")
       } catch (error) {
