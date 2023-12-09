@@ -70,12 +70,12 @@ contract XMTPChatPlugin is BasePluginWithEventMetadata,FunctionsClient,ILogAutom
 
     }
 
-    modifier onlyManager{
+    modifier onlyManager {
         require(msg.sender==manager,"Only manager");
         _;
     }
 
-    function setupPlugin(address safe, uint256 rewardAmount,address _rewardToken) external onlyManager {
+    function setupPlugin(address safe, uint256 rewardAmount,address _rewardToken) external /*onlyManager*/  {
         safeToVerifyParams[safe] = VerifyParams(rewardAmount,_rewardToken);
         rewardToken=_rewardToken;
 

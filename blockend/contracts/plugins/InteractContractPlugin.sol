@@ -72,12 +72,12 @@ contract InteractContractPlugin is BasePluginWithEventMetadata,FunctionsClient,I
         donId=_donId;
     }
 
-    modifier onlyManager{
+    modifier onlyManager {
         require(msg.sender==manager,"Only manager");
         _;
     }
 
-    function setupPlugin(address safe,string memory contractAddress,string memory _eventSignature, string memory _index,uint rewardAmount,address _rewardToken) external onlyManager {
+    function setupPlugin(address safe,string memory contractAddress,string memory _eventSignature, string memory _index,uint rewardAmount,address _rewardToken) external /*onlyManager*/  {
         safeToVerifyParams[safe] = VerifyParams({
             contractAddress:contractAddress,
             eventSignature:_eventSignature,

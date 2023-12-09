@@ -9,6 +9,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract DailyGMCampaign{
 
+
+
     struct CreateCampaignInputParams{
         string name;
         string metadata;
@@ -21,6 +23,7 @@ contract DailyGMCampaign{
         uint256 salt;
     }
 
+
     struct Campaign{
         string name;
         string metadata;
@@ -31,13 +34,16 @@ contract DailyGMCampaign{
         address creator;
     }
 
+
+    uint256 public campaignCount;
+
     address public safeSingleton;
     SafeProxyFactory public safeProxyFactory;
     address public manager;
-    mapping(address=>uint[]) public yourCampaigns;
+    mapping(address=>uint256[]) public yourCampaigns;
 
 
-    Campaign[] public campaigns;
+    mapping(uint256=>Campaign) public campaigns;
 
     constructor(address _safe,SafeProxyFactory _safeProxyFactory,address _manager){
         safeSingleton=_safe;
@@ -56,15 +62,16 @@ contract DailyGMCampaign{
         IERC20(params.rewardTokenAddress).transferFrom(msg.sender, address(safe), params.tokenAmount);
 
         Campaign memory _campaign=Campaign(params.name,params.metadata,params.rewardTokenAddress,params.tokenAmount,params.quests,address(safe),msg.sender);  
-        campaigns.push(_campaign);
-        yourCampaigns[msg.sender].push(campaigns.length-1);
+        campaigns[campaignCount]=_campaign;
+        yourCampaigns[msg.sender].push(campaignCount-1);
+        campaignCount++;
         emit CampaignCreated(_campaign);
     }
 
 
-    function getCampaign(uint256 campaignId)public view returns(Campaign memory campaign)
+    function getCampaign(uint256 campaignId)public view returns(Campaign memory)
     {
-        return campaigns[campaigns.length-1];
+        return campaigns[campaignCount-1];
     }
 
     function getUserCampaignIds(address user) public view returns(uint256[] memory)

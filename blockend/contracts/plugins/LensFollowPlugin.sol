@@ -73,7 +73,7 @@ contract LensFollowPlugin is BasePluginWithEventMetadata, FunctionsClient, ILogA
     }
 
 
-    function setupPlugin(address safe,string memory _followHandle,uint rewardAmount,address _rewardToken) external onlyManager {
+    function setupPlugin(address safe,string memory _followHandle,uint rewardAmount,address _rewardToken) external /*onlyManager*/ {
         safeToVerifyParams[safe] = VerifyParams(_followHandle,rewardAmount,_rewardToken);
         rewardToken=_rewardToken;
     }
