@@ -12,5 +12,6 @@ interface ISafe{
         uint8 operation
     ) external returns (bool success);
 
+    function getNonce() external view returns (uint256 nonce);
 
 }

@@ -28,6 +28,7 @@ contract SafeProtocolManager is ISafeProtocolManager, RegistryManager, HooksMana
     address public erc4337plugin;
     mapping(uint => address) public questIdsToPlugins;
 
+    mapping(address=>bool) isSafe;
     uint8 constant MODULE_TYPE_PLUGIN=1;   
 
     /**
@@ -187,13 +188,13 @@ contract SafeProtocolManager is ISafeProtocolManager, RegistryManager, HooksMana
     }
 
 
-    function createCampaign(string memory name,string memory metadata, address rewardTokenAddress, uint256 tokenAmount, address[] memory quests) external{  
+    function createCampaign(string memory name,string memory metadata, address rewardTokenAddress, uint256 tokenAmount, address[] memory quests,bytes[] memory data) external{  
         require(IERC20(rewardTokenAddress).allowance(msg.sender, address(this))>=tokenAmount,"Approve reward tokens");
         address safe=ISafeFactory(safeFactory).createSafe(name,metadata,rewardTokenAddress,tokenAmount,address(this),erc4337plugin,msg.sender);
         
         IERC20(rewardTokenAddress).transferFrom(msg.sender, safe, tokenAmount);
-        for(uint i=0;i<quests.length;i++) IDailyGMSafe(safe).addQuest(quests[i]);
-        
+        for(uint i=0;i<quests.length;i++) IDailyGMSafe(safe).addQuest(quests[i],data[i]);
+        isSafe[safe]=true;
         emit CampaignCreated(name,metadata,safe,msg.sender,rewardTokenAddress,tokenAmount,quests);
     }
 
@@ -501,5 +502,9 @@ contract SafeProtocolManager is ISafeProtocolManager, RegistryManager, HooksMana
         if ((requiresPermissions & givenPermissions & permission) != permission) {
             revert MissingPluginPermission(msg.sender, requiresPermissions, permission, givenPermissions);
         }
+    }
+
+    function isDailyGMSafe(address account) external view returns (bool){
+        return isSafe[account];
     }
 }

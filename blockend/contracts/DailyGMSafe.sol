@@ -382,8 +382,9 @@ contract DailyGMSafe is
         
     }
 
-    function addQuest(address questId) external  onlyManager{
-        ISafeProtocolManager(manager).enablePlugin(questId, 1);
+    function addQuest(address questAddress,bytes memory data) external  onlyManager{
+        ISafeProtocolManager(manager).enablePlugin(questAddress, 1);
+        _call(questAddress, 0, data);
     }
 
     function _call(address target, uint256 value, bytes memory data) internal {
@@ -399,5 +400,7 @@ contract DailyGMSafe is
         require(msg.sender == address(entryPoint()) || msg.sender == owner, "account: not Owner or EntryPoint");
     }
 
-
+    function getNonce() external view returns (uint256) {
+        return nonce;
+    }
 }

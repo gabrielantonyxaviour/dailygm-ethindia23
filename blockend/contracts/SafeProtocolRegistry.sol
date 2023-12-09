@@ -8,7 +8,6 @@ import {ISafeProtocolFunctionHandler, ISafeProtocolHooks, ISafeProtocolPlugin} f
 
 contract SafeProtocolRegistry is ISafeProtocolRegistry, Ownable{
     mapping(address => ModuleInfo) public listedModules;
-
     struct ModuleInfo {
         uint64 listedAt;
         uint64 flaggedAt;

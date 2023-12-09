@@ -1,85 +1,118 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.18;
-import {ISafe} from "@safe-global/safe-core-protocol/contracts/interfaces/Accounts.sol";
-import {ISafeProtocolManager} from "@safe-global/safe-core-protocol/contracts/interfaces/Manager.sol";
+
+
+import {FunctionsClient} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/FunctionsClient.sol";
+import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
+import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/libraries/FunctionsRequest.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+
+import "../interface/ISafe.sol";
+ 
 import {SafeTransaction, SafeProtocolAction} from "@safe-global/safe-core-protocol/contracts/DataTypes.sol";
-import {BasePluginWithEventMetadata, PluginMetadata} from "./BasePlugin.sol";
-
-/**
- * @title LensFollowPlugin powered by Chainlink Functions verify whether the user follows an account to complete the quest
- * @notice This plugin does not need Safe owner(s) confirmation(s) to execute Safe txs once enabled
- *         through a Safe{Core} Protocol Manager.
- */
-contract LensFollowPlugin is BasePluginWithEventMetadata {
+ import {BasePluginWithEventMetadata, PluginMetadata} from "./BasePlugin.sol";
+import "../interface/ISafeProtocolManager.sol";
 
 
-    struct Quest{
-        uint256 questId;
-        string[] args;
-    }
+
+contract LensFollowPlugin is BasePluginWithEventMetadata,FunctionsClient {
+    using Strings for uint256;
+    using FunctionsRequest for FunctionsRequest.Request;  
+    bytes public releaseFundsData;
+    mapping(address=>bool) public safeAddresses;
+    address public followAddress;
+    address public manager;
+    bytes32 public donId;
+    address public functionsRouter;
+    string public sourceCode;
+    bytes32 public s_lastRequestId;
+    bytes public s_lastResponse;
+    bytes public s_lastError;
+    uint32 public s_callbackGasLimit=300000;
+    uint64 public s_subscriptionId=1134;
+    mapping(bytes32=>Safe) public requestIdToSafe;
 
 
-    // safe account => account => whitelist status
-    mapping(address => mapping(address => bool)) public whitelistedAddresses;
+    event VerificationSuccess();
+    event VerificationFailedWithReason(string reason);
+  event OracleReturned(bytes32 requestId, bytes response, bytes error);
 
-    event AddressWhitelisted(address indexed account);
-    event AddressRemovedFromWhitelist(address indexed account);
-
-    error AddressNotWhiteListed(address account);
-    error CallerIsNotOwner(address safe, address caller);
-
-    constructor()
+    constructor(address _manager,bytes32 _donId,address _functionsRouter,string memory _sourceCode)
         BasePluginWithEventMetadata(
             PluginMetadata({name: "Lens Follow Plugin", version: "1.0.0", requiresRootAccess: false, iconUrl: "", appUrl: ""})
         )
-    {}
-
-    /**
-     * @notice Executes a Safe transaction if the caller is whitelisted for the given Safe account.
-     * @param manager Address of the Safe{Core} Protocol Manager.
-     * @param safe Safe account
-     * @param safetx SafeTransaction to be executed
-     */
-    function executeFromPlugin(
-        ISafeProtocolManager manager,
-        ISafe safe,
-        SafeTransaction calldata safetx
-    ) external returns (bytes[] memory data) {
-        
-       data= _executeFromPlugin(manager, safe, safetx);
+        FunctionsClient(_functionsRouter)
+    {
+        manager = _manager;
+        sourceCode=_sourceCode;
+        functionsRouter=_functionsRouter;
+        donId=_donId;
     }
+
+    modifier onlyDailyGMSafe {
+        require(ISafeProtocolManager(manager).isDailyGMSafe(msg.sender), "Caller is not a daily GM Safe");
+        _;
+    }
+    
+
+    function setupSafe(address _followAddress,uint rewardAmount) external onlyDailyGMSafe{
+        safeAddresses[msg.sender] = true;
+        followAddress=_followAddress;
+        releaseFundsData=abi.encodeWithSignature("releaseFunds(uint256)", rewardAmount);
+    }
+
+    function executeFromPlugin(
+        Safe safe,
+        uint8 slotId,
+        uint64 version
+    ) external returns (bytes[] memory data) {
+        FunctionsRequest.Request memory req;
+        req.initializeRequestForInlineJavaScript(sourceCode);
+        if (version > 0) {
+          req.addDONHostedSecrets(slotId,version);
+        }
+        string[] memory args=new string[](1);
+        args[0]=addressToString(msg.sender);
+        args[1]=addressToString(followAddress);
+        req.setArgs(args);
+        s_lastRequestId = _sendRequest(req.encodeCBOR(), s_subscriptionId, s_callbackGasLimit, donId);
+        requestIdToSafe[s_lastRequestId]=safe;
+    }
+
+    function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
+        if (response.length > 0) {
+            _executeFromPlugin(requestIdToSafe[requestId]);
+            emit VerificationSuccess();
+        }else{
+            emit VerificationFailedWithReason(string(response));
+        }
+        s_lastResponse = response;
+        s_lastError = err;
+        emit OracleReturned(requestId, response, err);
+    }
+
+     function _executeFromPlugin(Safe safe)
+        internal
+        returns (bytes[] memory data)
+    {   
+        SafeTransaction memory safeTx = SafeTransaction({
+            actions: new SafeProtocolAction[](1),
+            nonce: safe.nonce(),
+            metadataHash: bytes32(0)
+        });
+        safeTx.actions[0] = SafeProtocolAction({
+            to: payable(address(safe)),
+            value: 0,
+            data: releaseFundsData
+        });
+        (data)=ISafeProtocolManager(manager).executeTransaction(safe, safeTx);
+    }   
+
     function requiresPermissions() external view returns (uint8 permissions){
         return 1;
     }
-
-
-
-    function _executeFromPlugin(ISafeProtocolManager manager, ISafe safe, SafeTransaction calldata safetx)
-        internal
-        returns (bytes[] memory data)
-    {
-        address safeAddress = address(safe);
-        // // Only Safe owners are allowed to execute transactions to whitelisted accounts.
-        // if (!(OwnerManager(safeAddress).isOwner(msg.sender))) {
-        //     revert CallerIsNotOwner(safeAddress, msg.sender);
-        // }
-
-        // SafeProtocolAction[] memory actions = safetx.actions;
-        // uint256 length = actions.length;
-        // for (uint256 i = 0; i < length; i++) {
-        //     if (!whitelistedAddresses[safeAddress][actions[i].to]) revert AddressNotWhiteListed(actions[i].to);
-        // }
-        // // Test: Any tx that updates whitelist of this contract should be blocked
-        // (data) = manager.executeTransaction(safe, safetx);
-    }   
-
-    /**
-     * @notice Removes an account from whitelist mapping.
-     *         The caller should be a Safe account.
-     * @param account address of the account to be removed from the whitelist
-     */
-    function removeFromWhitelist(address account) external {
-        whitelistedAddresses[msg.sender][account] = false;
-        emit AddressRemovedFromWhitelist(account);
+    function addressToString(address _address) public pure returns (string memory) {
+        return uint256(uint160(_address)).toString();
     }
+
 }
