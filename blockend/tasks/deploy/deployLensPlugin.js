@@ -1,15 +1,20 @@
 const { networks } = require("../../networks")
+const fs = require("fs")
 
 task("deploy-lens-plugin", "Deploys the LensFollowPlugin contract")
   .addOptionalParam("verify", "Set to true to verify contract", false, types.boolean)
   .setAction(async (taskArgs) => {
     console.log(`Deploying LensFollowPlugin contract to ${network.name}`)
 
+    const sourceCode = fs.readFileSync("./functions-lens-follow.js").toString()
+    const donId = "0x66756e2d706f6c79676f6e2d6d756d6261692d31000000000000000000000000"
+    const functionsRouter = "0x6E2dc0F9DB014aE19888F539E59285D2Ea04244C"
+    const manager = "0x0429A2Da7884CA14E53142988D5845952fE4DF6a"
     console.log("\n__Compiling Contracts__")
     await run("compile")
 
     const lensPluginFactory = await ethers.getContractFactory("LensFollowPlugin")
-    const lensPlugin = await lensPluginFactory.deploy()
+    const lensPlugin = await lensPluginFactory.deploy(manager, donId, functionsRouter, sourceCode)
 
     console.log(
       `\nWaiting ${networks[network.name].confirmations} blocks for transaction ${
@@ -36,7 +41,7 @@ task("deploy-lens-plugin", "Deploys the LensFollowPlugin contract")
         console.log("\nVerifying contract...")
         await run("verify:verify", {
           address: lensPlugin.address,
-          constructorArguments: [],
+          constructorArguments: [manager, donId, functionsRouter, sourceCode],
         })
         console.log("Contract verified")
       } catch (error) {

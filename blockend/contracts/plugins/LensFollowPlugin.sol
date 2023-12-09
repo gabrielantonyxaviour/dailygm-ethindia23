@@ -55,7 +55,7 @@ contract LensFollowPlugin is BasePluginWithEventMetadata,FunctionsClient {
     }
     
 
-    function setupSafe(string memory _followHandle,uint rewardAmount) external onlyDailyGMSafe{
+    function setupSafe(string memory _followHandle,uint rewardAmount) external {
         safeAddresses[msg.sender] = true;
         followHandle=_followHandle;
         releaseFundsData=abi.encodeWithSignature("releaseFunds(uint256)", rewardAmount);
@@ -81,7 +81,7 @@ contract LensFollowPlugin is BasePluginWithEventMetadata,FunctionsClient {
 
     function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
         if (response.length > 0) {
-            _executeFromPlugin(requestIdToSafe[requestId]);
+            // _executeFromPlugin(requestIdToSafe[requestId]);
             emit VerificationSuccess();
         }else{
             emit VerificationFailedWithReason(string(response));
