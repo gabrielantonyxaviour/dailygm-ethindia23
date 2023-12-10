@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { NFTStorage, Blob } from "nft.storage";
 import StepsStatus from "@/components/steps/StepsStatus";
 import Image from "next/image";
-
+import { useContractWrite } from "wagmi";
+import cont from "../../utils/dailyGM.json"
 export default function Step({
   campaignData,
   setCampaignData,
@@ -16,7 +17,31 @@ export default function Step({
 }) {
   const [rewards, setRewards] = useState<any>(campaignData.step2?.quests);
   console.log("Campaign Data:", campaignData.step2?.quests);
+  const [maxtoken,setmaxtoken] = useState<any>(0)
+  const [approved, setApproved] = useState(true);
+  const approvebtn =`mt-5 disabled:opacity-50 rounded-xl bg-${approved?"white":"green"} px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-lg ring-1 ring-inset ring-gray-300 hover:bg-gray-50`
+  const { data:d, isLoading, isSuccess, write } = useContractWrite({
+    address:cont.address as  `0x${string}`,
+    abi: cont.abi,
+    functionName: 'createCampaign',
+  })
+const oncampaign = async () => {
+  const name = campaignData.step1?.campaignName
+  const meta = campaignData.step1?.categories[0].name;
+  const rewardtoken = "0xf1E3A5842EeEF51F2967b3F05D45DD4f4205FF40"
+  const tknamt = campaignData.step4?.maxtoken
+  // const quests = campaignData.step2?.quests.map((quest: any) => {quest.contract})
+  const quests =["0xF59a35C04C43E82416bBed4F27Cc1404583c8888","0x75518315aeB64958CBC6a95EE4D07c34077F1D90"]
+  const dat=["0x0000"]
+  const owners=["0x0429A2Da7884CA14E53142988D5845952fE4DF6a"]
+  const threshold = 1
+  const salt =69
+  console.log("campaign contract:",name,meta,rewardtoken,tknamt,quests,dat,owners,threshold,salt)
+  write({
+    args:[[name,meta,rewardtoken,tknamt,quests,dat,owners,threshold,salt]]
+  })
 
+}
   return (
     <section>
       <StepsStatus currentStep={currentStep} />
@@ -137,11 +162,14 @@ export default function Step({
               type="text"
               className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 disabled:ring-gray-200 sm:text-sm sm:leading-6"
               placeholder="LFG Polygon!"
+              onChange={(e: any) => {setmaxtoken(e.target.value)}}
             />
           </div>
           <div className="flex justify-end items-end">
-            <button className="mt-5  disabled:opacity-50 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-lg ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-              Deposit Funds
+            <button className={approvebtn}  
+            disabled={approved}
+              >
+                Approve Funds
             </button>
           </div>
         </div>
@@ -163,13 +191,16 @@ export default function Step({
                 ...campaignData,
                 step4: {
                   rewards: rewards,
+                  maxtoken:maxtoken
                 },
               });
+              oncampaign()
               setCurrentStep(currentStep + 1);
             }}
+            disabled={!approved}
             className="disabled:opacity-50 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
           >
-            Next Step
+            Create Form
           </button>
         </div>
       </div>

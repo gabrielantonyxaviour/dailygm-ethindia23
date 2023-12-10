@@ -16,7 +16,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 
 const navigation = [
-  { name: "Home", href: "/", icon: HomeIcon, current: true },
+  { name: "Home", href: "/home", icon: HomeIcon, current: true },
   {
     name: "Create GM",
     href: "/create-gm",

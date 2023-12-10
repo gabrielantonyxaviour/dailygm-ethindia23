@@ -14,10 +14,11 @@ const allQuests = [
     points: 10,
     description:
       "Mint a token, stake a token, or do something else with a contract",
+    contract:"0x75518315aeB64958CBC6a95EE4D07c34077F1D90",
     data: {
       ContractAddress: "",
-      FunctionSignature: [],
-      ValidationEvent: "",
+      EventSignature: [],
+      EventIndex: "",
       ChainId: "",
     },
   },
@@ -59,12 +60,10 @@ const allQuests = [
   },
   {
     id: 6,
-    name: "Like a Tweet",
+    name: "Create a XMTP profile",
     points: 10,
-    description: "Grow your twitter engagement",
-    data: {
-      TweetLink: "",
-    },
+    description: "Grow you XMTP profile",
+    contract:"0x2829A954A5110B644510c11247AbB346acf60028"
   },
   {
     id: 7,
@@ -77,15 +76,15 @@ const allQuests = [
   },
   {
     id: 8,
-    name: "Post on Lens with mention or hashtag",
+    name: "Follow a Lens profile",
     points: 10,
     description: "Grow your Lens engagement",
+    contract:"0xF59a35C04C43E82416bBed4F27Cc1404583c8888",
     data: {
-      MentionOrHashTag: "",
+      ProfileId: "",
     },
   },
 ];
-
 export default function Step({
   campaignData,
   setCampaignData,
@@ -166,7 +165,7 @@ export default function Step({
                   <p className="text-sm">{quest.name}</p>
                 </div>
               </div>
-              {Object.keys(quest.data).map((key: any) => (
+              {quest.data&&Object.keys(quest.data).map((key: any) => (
                 <div key={key} className="mt-2">
                   <label
                     htmlFor={key}
