@@ -40,9 +40,9 @@ export default function Widget({campId}:{campId:number}) {
 });
 const safe=(contractRead.data as { safe: string })?.safe
 const qst = {
-  "0x2452a4eEC9359Ff93C084ed5eD3E21eaC197586D": "LensFollowPlugin",
-  "0xD82ee61aA30d018239350f9843cB8A4967B8b3da": "XMTPChatPlugin",
-  "0x75518315aeB64958CBC6a95EE4D07c34077F1D90": "ContractInteractPlugin",
+  "0xF9F45B3123D8563AACAEfB322899F62fF094EA06": "LensFollowPlugin",
+  "0x36895cD0b70C6234e5be0d528827C3e84146a91F": "XMTPChatPlugin",
+  "0xeCb2C7b68098F8Fa5318978869560d8E1bdE3D03": "ContractInteractPlugin",
 };
 const cmp =(quest.data as string[])?.map((q: string) =>{
   useContractRead({
@@ -69,6 +69,7 @@ const dat = {
             <div className="mt-3 flex ">
             {dat.completion.map((comp: any, index: number) => (
             <div
+              key={index}
               className={`grid grid-col-1 gap-3 shadow-lg ml-5 rounded-lg p-3 px-4 ring-1 w-92 h-92 ${
                 !comp
                   ? "ring-indigo-600 bg-indigo-100"

@@ -4,6 +4,8 @@ import StepsStatus from "@/components/steps/StepsStatus";
 import Image from "next/image";
 import { useContractWrite } from "wagmi";
 import cont from "../../utils/dailyGM.json"
+import { ethers } from "ethers";
+import { CCIP_BNM_ABI } from "@/utils/constants";
 export default function Step({
   campaignData,
   setCampaignData,
@@ -15,29 +17,36 @@ export default function Step({
   currentStep: any;
   setCurrentStep: any;
 }) {
+  const CCIP_BNM_TOKEN="0xf1E3A5842EeEF51F2967b3F05D45DD4f4205FF40"    
   const [rewards, setRewards] = useState<any>(campaignData.step2?.quests);
   console.log("Campaign Data:", campaignData.step2?.quests);
-  const [maxtoken,setmaxtoken] = useState<any>(0)
-  const [approved, setApproved] = useState(true);
+  const [maxtoken,setmaxtoken] = useState<number>(0)
+  const [approved, setApproved] = useState(false);
   const approvebtn =`mt-5 disabled:opacity-50 rounded-xl bg-${approved?"white":"green"} px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-lg ring-1 ring-inset ring-gray-300 hover:bg-gray-50`
-  const { data:d, isLoading, isSuccess, write } = useContractWrite({
+  const { data:d, isLoading, isSuccess, write:createCampaign } = useContractWrite({
     address:cont.address as  `0x${string}`,
     abi: cont.abi,
     functionName: 'createCampaign',
   })
-const oncampaign = async () => {
+  const { data, isLoading:isApproveLoading, isSuccess:isApproveSuccess, write:approve } = useContractWrite({
+    address:CCIP_BNM_TOKEN,
+    abi: CCIP_BNM_ABI,
+    functionName: 'approve',
+  })
+  
+  const oncampaign = async () => {
   const name = campaignData.step1?.campaignName
   const meta = campaignData.step1?.categories[0].name;
   const rewardtoken = "0xf1E3A5842EeEF51F2967b3F05D45DD4f4205FF40"
-  const tknamt = campaignData.step4?.maxtoken
+  const tknamt =   ethers.parseEther(maxtoken.toString())
   // const quests = campaignData.step2?.quests.map((quest: any) => {quest.contract})
   const quests =["0xF59a35C04C43E82416bBed4F27Cc1404583c8888","0x75518315aeB64958CBC6a95EE4D07c34077F1D90"]
-  const dat=["0x0000"]
+  const dat=["0x","0x"]
   const owners=["0x0429A2Da7884CA14E53142988D5845952fE4DF6a"]
   const threshold = 1
   const salt =69
   console.log("campaign contract:",name,meta,rewardtoken,tknamt,quests,dat,owners,threshold,salt)
-  write({
+  createCampaign({
     args:[[name,meta,rewardtoken,tknamt,quests,dat,owners,threshold,salt]]
   })
 
@@ -167,7 +176,10 @@ const oncampaign = async () => {
           </div>
           <div className="flex justify-end items-end">
             <button className={approvebtn}  
-            disabled={approved}
+            onClick={()=>{
+              approve({args:[cont.address,ethers.parseEther(maxtoken.toString())]})
+            }}
+            disabled={isApproveSuccess}
               >
                 Approve Funds
             </button>
@@ -196,8 +208,8 @@ const oncampaign = async () => {
               });
               oncampaign()
               setCurrentStep(currentStep + 1);
-            }}
-            disabled={!approved}
+            }}  
+            disabled={!isApproveSuccess}
             className="disabled:opacity-50 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
           >
             Create Form
