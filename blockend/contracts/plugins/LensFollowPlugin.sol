@@ -49,6 +49,7 @@ contract LensFollowPlugin is BasePluginWithEventMetadata, FunctionsClient, ILogA
     uint64 public s_subscriptionId=1134;
     address public i_link;
     mapping(bytes32=>Target) public requestIdToTarget;
+    mapping(address=>mapping(address=>bool)) public completed;
 
 
     event VerificationSuccess(bytes32 requestId);
@@ -65,6 +66,8 @@ contract LensFollowPlugin is BasePluginWithEventMetadata, FunctionsClient, ILogA
         sourceCode=_sourceCode;
         functionsRouter=_functionsRouter;
         donId=_donId;
+        crosschainRouter=_crossChainRouter;
+        i_link=_link;
     }
 
     modifier onlyManager{
@@ -121,6 +124,7 @@ contract LensFollowPlugin is BasePluginWithEventMetadata, FunctionsClient, ILogA
     function performUpkeep(bytes calldata performData) external override {
         bytes32 _requestId = abi.decode(performData, (bytes32));
         _executeFromPlugin(requestIdToTarget[_requestId]);
+        completed[address(requestIdToTarget[_requestId].safe)][requestIdToTarget[_requestId].caller]=true;
     }
 
 
@@ -175,6 +179,8 @@ contract LensFollowPlugin is BasePluginWithEventMetadata, FunctionsClient, ILogA
     }
     function addressToString(address _address) public pure returns (string memory) {
         return uint256(uint160(_address)).toString();
+    } 
+    function isCompleted(address safe) external view returns(bool){
+        return completed[safe][msg.sender];
     }
-
 }

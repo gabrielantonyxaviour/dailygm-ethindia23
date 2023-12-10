@@ -6,7 +6,7 @@ task("deploy-lens-plugin", "Deploys the LensFollowPlugin contract")
   .setAction(async (taskArgs) => {
     console.log(`Deploying LensFollowPlugin contract to ${network.name}`)
 
-    const manager = "0x70DAAa5df4cA762dE7956D13f3519a504753eB13"
+    const manager = "0xeb75D9BF5997b14919908808f088FcC0ac0B2790"
     const donId = "0x66756e2d706f6c79676f6e2d6d756d6261692d31000000000000000000000000"
     const functionsRouter = "0x6E2dc0F9DB014aE19888F539E59285D2Ea04244C"
     const crossChainRouter = "0x70499c328e1e2a3c41108bd3730f6670a44595d1"

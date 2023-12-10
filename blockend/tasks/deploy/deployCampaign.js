@@ -10,7 +10,7 @@ task("deploy-campaign", "Deploys the DailyGMCampaign contract")
 
     const safe = "0x41675C099F32341bf84BFc5382aF534df5C7461a"
     const safeProxyFactory = "0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67"
-    const manager = "0x70DAAa5df4cA762dE7956D13f3519a504753eB13"
+    const manager = "0xeb75D9BF5997b14919908808f088FcC0ac0B2790"
 
     const campaignFactory = await ethers.getContractFactory("DailyGMCampaign")
     const campaign = await campaignFactory.deploy(safe, safeProxyFactory, manager)

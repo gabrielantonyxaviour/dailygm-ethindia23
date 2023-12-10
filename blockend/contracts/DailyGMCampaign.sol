@@ -63,7 +63,7 @@ contract DailyGMCampaign{
 
         Campaign memory _campaign=Campaign(params.name,params.metadata,params.rewardTokenAddress,params.tokenAmount,params.quests,address(safe),msg.sender);  
         campaigns[campaignCount]=_campaign;
-        yourCampaigns[msg.sender].push(campaignCount-1);
+        yourCampaigns[msg.sender].push(campaignCount);
         campaignCount++;
         emit CampaignCreated(_campaign);
     }
@@ -71,7 +71,7 @@ contract DailyGMCampaign{
 
     function getCampaign(uint256 campaignId)public view returns(Campaign memory)
     {
-        return campaigns[campaignCount-1];
+        return campaigns[campaignId];
     }
 
     function getUserCampaignIds(address user) public view returns(uint256[] memory)
