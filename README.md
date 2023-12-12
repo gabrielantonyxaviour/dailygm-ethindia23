@@ -1,2 +1,2 @@
 # dailygm-ethindia23
-A web3 native user retention protocol
+A Web3 based Permissionless Questing Protocol
